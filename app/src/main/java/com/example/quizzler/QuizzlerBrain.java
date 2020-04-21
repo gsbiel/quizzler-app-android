@@ -19,18 +19,25 @@ public class QuizzlerBrain {
 
     private int currentQuestion;
 
-    private double progress;
+    private int progress;
 
     private int score;
 
     QuizzlerBrain(){
         this.currentQuestion = 0;
         this.score = 0;
-        this.progress = ((float) this.currentQuestion / (float) this.questions.length) + 10;
+        this.progress = (int) ((((float) (this.currentQuestion + 1)) / (float) this.questions.length)*100);
     }
 
     public String nextQuestion(){
-        this.currentQuestion += 1;
+        if(this.currentQuestion < this.questions.length-1){
+            this.currentQuestion += 1;
+            this.progress = (int) ((((float) (this.currentQuestion + 1))  / (float) this.questions.length)*100);
+        }else{
+            this.currentQuestion = 0;
+            this.progress = (int) ((((float) (this.currentQuestion + 1))  / (float) this.questions.length)*100);
+            this.score = 0;
+        }
         return this.getCurrentQuestion();
     }
 
@@ -38,8 +45,12 @@ public class QuizzlerBrain {
         return this.questions[this.currentQuestion].getQuestion();
     }
 
-    public double getProgress(){
+    public int getProgress(){
         return this.progress;
+    }
+
+    public int getScore(){
+        return this.score;
     }
 
     public Boolean checkAnswer(Boolean answer){
