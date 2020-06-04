@@ -24,21 +24,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.quizzlerBrain = new QuizzlerBrain();
-
-        this.catchReferencesFromLayout();
-        this.registerForEvents();
-
-        this.updateUI();
+//        this.quizzlerBrain = new QuizzlerBrain();
+//
+//        this.registerForEvents();
+//
+//        this.updateUI();
     }
 
-    private void catchReferencesFromLayout() {
-        this.scoreLabel = findViewById(R.id.scoreLabel);
-        this.firstAnswerBtn = findViewById(R.id.firstAnswer);
-        this.secondAnswerBtn = findViewById(R.id.secondAnswer);
-        this.questionLabel = findViewById(R.id.questionLabel);
-        this.progressBar = findViewById(R.id.progressBar);
-    }
+
 
     private void registerForEvents() {
 
@@ -50,24 +43,19 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     firstAnswerBtn.setBackgroundColor(Color.rgb(255,0 ,0));
                 }
-
                 new NextQuestionTimer(firstAnswerBtn).execute();
-
             }
         });
 
         this.secondAnswerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if(quizzlerBrain.checkAnswer(false)){
                     secondAnswerBtn.setBackgroundColor(Color.rgb(53,229,59));
                 }else{
                     secondAnswerBtn.setBackgroundColor(Color.rgb(255,0 ,0));
                 }
-
                 new NextQuestionTimer(firstAnswerBtn).execute();
-
             }
         });
     }
@@ -82,13 +70,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private class NextQuestionTimer extends AsyncTask<Void, Void, Void> {
-
         Button button;
-
         NextQuestionTimer(Button button){
             this.button = button;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             try {
