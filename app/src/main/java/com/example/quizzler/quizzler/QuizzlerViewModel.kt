@@ -2,11 +2,17 @@ package com.example.quizzler.quizzler
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import kotlin.math.roundToInt
 
 class QuizzlerViewModel: ViewModel() {
 
     private data class Question(val question: String, val answer: Boolean)
+
+    // The fragment_quizzler layout accesses these variables to identify which question has been selected by the user.
+    val firstAnswer: Boolean = true
+    val secondAnswer: Boolean = false
 
     companion object{
         private val questionBank = listOf(
@@ -25,15 +31,58 @@ class QuizzlerViewModel: ViewModel() {
         )
     }
 
-    private val _score = MutableLiveData<Int>()
-    val score: LiveData<Int>
-        get() = _score
+    // List of questions ---------------------------------------------------
+    private lateinit var questionList: List<Question>
 
-    private val _currentDataQuestion = MutableLiveData<String>()
-    val currentDataQuestion: LiveData<String>
-        get() = _currentDataQuestion
+    // Score ---------------------------------------------------------------
+    private val score = MutableLiveData<Int>()
+    val scoreString = Transformations.map(score) {
+        it.toString()
+    }
 
+    // Current question -----------------------------------------------------
+    private var currentQuestionIndex: Int = 0
+    private val currentDataQuestion = MutableLiveData<Question>()
+    val questionText = Transformations.map(currentDataQuestion){
+        it.question
+    }
+
+    // Current progress -----------------------------------------------------
     private val _currentProgress = MutableLiveData<Int>()
     val currentProgress: LiveData<Int>
         get() = _currentProgress
+
+    init {
+        resetGame()
+    }
+
+    fun onAnswerSelected(answer: Boolean){
+        updateScoreFor(answer)
+        nextQuestion()
+    }
+
+    private fun updateScoreFor(answer: Boolean){
+        if(answer){
+            score.value = score.value!! + 10
+        }
+    }
+
+    private fun nextQuestion(){
+        if(currentQuestionIndex < (questionList.size-1)){
+            currentQuestionIndex += 1;
+            currentDataQuestion.value = questionList[currentQuestionIndex]
+            _currentProgress.value = ((currentQuestionIndex.toDouble()/questionList.size.toDouble())*100).roundToInt()
+        }else{
+            resetGame()
+        }
+    }
+
+    private fun resetGame(){
+        questionList = QuizzlerViewModel.questionBank.shuffled()
+        currentQuestionIndex = 0;
+        currentDataQuestion.value = questionList[currentQuestionIndex]
+        score.value = 0
+        _currentProgress.value = 0
+    }
+
 }
