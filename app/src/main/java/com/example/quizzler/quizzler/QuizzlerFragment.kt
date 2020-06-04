@@ -12,7 +12,7 @@ import com.example.quizzler.databinding.FragmentQuizzlerBinding
 class QuizzlerFragment: Fragment() {
 
     private lateinit var binding: FragmentQuizzlerBinding
-    
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_quizzler, container, false)
 
