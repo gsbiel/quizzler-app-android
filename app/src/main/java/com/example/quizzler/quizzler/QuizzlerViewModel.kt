@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
 class QuizzlerViewModel: ViewModel() {
@@ -29,6 +30,10 @@ class QuizzlerViewModel: ViewModel() {
                 Question("No piece of square dry paper can be folded in half more than 7 times.", false),
                 Question("Chocolate affects a dog's heart and nervous system; a few ounces are enough to kill a small dog.", true)
         )
+
+        private val INDEX_WRONG_ANSWER = 0
+        private val INDEX_RIGHT_ANSWER = 1
+        private val INDEX_DEFAULT = 2
     }
 
     // List of questions ---------------------------------------------------
@@ -52,18 +57,45 @@ class QuizzlerViewModel: ViewModel() {
     val currentProgress: LiveData<Int>
         get() = _currentProgress
 
+    // Buttons background color
+    private val _firstButtonHexColor = MutableLiveData<Int>()
+    val firstButtonHexColor: LiveData<Int>
+        get() = _firstButtonHexColor
+    private val _secondButtonHexColor = MutableLiveData<Int>()
+    val secondButtonHexColor: LiveData<Int>
+        get() = _secondButtonHexColor
+
+    // transition state property
+    private var isInTransitionState: Boolean =  false
+
+    private val viewModelJob = Job()
+    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+
     init {
         resetGame()
+        _firstButtonHexColor.value = INDEX_DEFAULT
+        _secondButtonHexColor.value = INDEX_DEFAULT
     }
 
     fun onAnswerSelected(answer: Boolean){
-        updateScoreFor(answer)
-        nextQuestion()
+        if(!isInTransitionState){
+            isInTransitionState = true
+            updateScoreAndUIFor(answer)
+        }
     }
 
-    private fun updateScoreFor(answer: Boolean){
-        if(answer){
+    private fun updateScoreAndUIFor(answer: Boolean){
+        if(answer == currentDataQuestion.value!!.answer){
             score.value = score.value!! + 10
+            when(answer){
+                true -> changeButtonColorTo(0, INDEX_RIGHT_ANSWER)
+                else -> changeButtonColorTo(1,  INDEX_RIGHT_ANSWER)
+            }
+        }else{
+            when(answer){
+                true -> changeButtonColorTo(0, INDEX_WRONG_ANSWER)
+                else -> changeButtonColorTo(1,  INDEX_WRONG_ANSWER)
+            }
         }
     }
 
@@ -83,6 +115,26 @@ class QuizzlerViewModel: ViewModel() {
         currentDataQuestion.value = questionList[currentQuestionIndex]
         score.value = 0
         _currentProgress.value = 0
+    }
+
+    private fun changeButtonColorTo(buttonIndex: Int, color: Int){
+        uiScope.launch{
+            when(buttonIndex){
+                0 -> _firstButtonHexColor.value = color
+                1 -> _secondButtonHexColor.value = color
+            }
+
+            withContext(Dispatchers.Default){
+                Thread.sleep(1000)
+            }
+
+            when(buttonIndex){
+                0 -> _firstButtonHexColor.value = INDEX_DEFAULT
+                1 -> _secondButtonHexColor.value = INDEX_DEFAULT
+            }
+            nextQuestion()
+            isInTransitionState = false
+        }
     }
 
 }
